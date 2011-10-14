@@ -1,0 +1,6 @@
+1. Import into Eclipse project.
+
+2. Configure following classpath variables.
+
+ ANDROID_LIB > point to android.jar
+ COMPAT_LIB > point to android-support-v4.jar
