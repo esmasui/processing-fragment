@@ -21,26 +21,6 @@
   Boston, MA  02111-1307  USA
 */
 
-/*
-  Fragment version of processing-core.
-  Changes; Inherits Fragment instead Activity. 
-
-  Copyright (c) 2011 Sosuke Masui(esmasui@gmail.com)
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License version 2.1 as published by the Free Software Foundation.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General
-  Public License along with this library; if not, write to the
-  Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-  Boston, MA  02111-1307  USA
-*/
 package processing.core;
 
 import java.io.IOException;
@@ -83,6 +63,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
 import java.net.URI;
 
+/**
+ * Fragment version of processing-core.
+ * Changes; Inherits Fragment instead Activity. 
+ * 
+ * 2011/10/13 Sosuke Masui(esmasui@gmail.com)
+ *
+ */
 public class PApplet extends Fragment implements PConstants, Runnable {
   /** The PGraphics renderer associated with this PApplet */
   public PGraphics g;
