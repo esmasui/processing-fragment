@@ -21,6 +21,26 @@
   Boston, MA  02111-1307  USA
 */
 
+/*
+  Fragment version of processing-core.
+  Changes; Inherits Fragment instead Activity. 
+
+  Copyright (c) 2011 Sosuke Masui(esmasui@gmail.com)
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License version 2.1 as published by the Free Software Foundation.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General
+  Public License along with this library; if not, write to the
+  Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  Boston, MA  02111-1307  USA
+*/
 package processing.core;
 
 import java.io.IOException;
@@ -41,9 +61,13 @@ import java.util.zip.*;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.support.v4.app.Fragment;
 import android.text.format.Time;
 import android.util.*;
+import android.view.LayoutInflater;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.opengl.GLSurfaceView;
 import android.view.WindowManager;
 import android.os.Bundle;
@@ -59,8 +83,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpEntity;
 import java.net.URI;
 
-
-public class PApplet extends Activity implements PConstants, Runnable {
+public class PApplet extends Fragment implements PConstants, Runnable {
   /** The PGraphics renderer associated with this PApplet */
   public PGraphics g;
 
@@ -397,7 +420,6 @@ public class PApplet extends Activity implements PConstants, Runnable {
   //////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////
 
-
   /** Called with the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -406,19 +428,19 @@ public class PApplet extends Activity implements PConstants, Runnable {
 
     if (DEBUG) println("onCreate() happening here: " + Thread.currentThread().getName());
 
-    Window window = getWindow();
-
-    // Take up as much area as possible
-    requestWindowFeature(Window.FEATURE_NO_TITLE);
-    window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
-
-    // This does the actual full screen work
-    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//    Window window = getWindow();
+//
+//    // Take up as much area as possible
+//    requestWindowFeature(Window.FEATURE_NO_TITLE);
+//    window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+//                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN);
+//
+//    // This does the actual full screen work
+//    window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+//                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
     DisplayMetrics dm = new DisplayMetrics();
-    getWindowManager().getDefaultDisplay().getMetrics(dm);
+    getActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
     screenWidth = dm.widthPixels;
     screenHeight = dm.heightPixels;
 //    println("density is " + dm.density);
@@ -442,9 +464,9 @@ public class PApplet extends Activity implements PConstants, Runnable {
     int sh = sketchHeight();
 
     if (sketchRenderer().equals(P2D)) {
-      surfaceView = new SketchSurfaceView2D(this, sw, sh);
+      surfaceView = new SketchSurfaceView2D(getActivity(), sw, sh);
     } else if (sketchRenderer().equals(P3D)) {
-      surfaceView = new SketchSurfaceView3D(this, sw, sh);
+      surfaceView = new SketchSurfaceView3D(getActivity(), sw, sh);
     }
     g = ((SketchSurfaceView) surfaceView).getGraphics();
     
@@ -464,26 +486,6 @@ public class PApplet extends Activity implements PConstants, Runnable {
 
 //      new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
 //        RelativeLayout.LayoutParams.FILL_PARENT);
-
-    if (sw == screenWidth && sh == screenHeight) {
-      // If using the full screen, don't embed inside other layouts
-      window.setContentView(surfaceView);      
-    } else {
-      // If not using full screen, setup awkward view-inside-a-view so that
-      // the sketch can be centered on screen. (If anyone has a more efficient
-      // way to do this, please file an issue on Google Code, otherwise you
-      // can keep your "talentless hack" comments to yourself. Ahem.)
-      RelativeLayout overallLayout = new RelativeLayout(this);
-      RelativeLayout.LayoutParams lp =
-        new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
-          RelativeLayout.LayoutParams.WRAP_CONTENT);
-      lp.addRule(RelativeLayout.CENTER_IN_PARENT);
-
-      LinearLayout layout = new LinearLayout(this);
-      layout.addView(surfaceView, sketchWidth(), sketchHeight());
-      overallLayout.addView(layout, lp);
-      window.setContentView(overallLayout);
-    }
     
     /*
     // Here we use Honeycomb API (11+) to hide (in reality, just make the status icons into small dots)
@@ -549,8 +551,8 @@ public class PApplet extends Activity implements PConstants, Runnable {
     mouseEventMethods = new RegisteredMethods();
     keyEventMethods = new RegisteredMethods();
     disposeMethods = new RegisteredMethods();
-
-    Context context = getApplicationContext();
+    
+    Context context = getActivity().getApplicationContext();
     sketchPath = context.getFilesDir().getAbsolutePath();
 
 //    Looper.prepare();
@@ -562,6 +564,32 @@ public class PApplet extends Activity implements PConstants, Runnable {
     start();
   }
 
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                           Bundle savedInstanceState) {
+    View contentView;
+    if (screenWidth == screenWidth && screenHeight == screenHeight) {
+      // If using the full screen, don't embed inside other layouts
+      contentView = surfaceView;
+    } else {
+      // If not using full screen, setup awkward view-inside-a-view so that
+      // the sketch can be centered on screen. (If anyone has a more efficient
+      // way to do this, please file an issue on Google Code, otherwise you
+      // can keep your "talentless hack" comments to yourself. Ahem.)
+      RelativeLayout overallLayout = new RelativeLayout(getActivity());
+      RelativeLayout.LayoutParams lp =
+        new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+          RelativeLayout.LayoutParams.WRAP_CONTENT);
+      lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+
+      LinearLayout layout = new LinearLayout(getActivity());
+      layout.addView(surfaceView, sketchWidth(), sketchHeight());
+      overallLayout.addView(layout, lp);
+      contentView = overallLayout;
+    }
+    
+    return contentView;
+  }
 
   public void onConfigurationChanged(Configuration newConfig) {
     System.out.println("configuration changed: " + newConfig);
@@ -569,7 +597,8 @@ public class PApplet extends Activity implements PConstants, Runnable {
   }
 
 
-  protected void onResume() {
+  @Override
+  public void onResume() {
     super.onResume();
 
     // TODO need to bring back app state here!
@@ -582,7 +611,8 @@ public class PApplet extends Activity implements PConstants, Runnable {
   }
 
 
-  protected void onPause() {
+  @Override
+  public void onPause() {
     super.onPause();
     
 
@@ -921,7 +951,7 @@ public class PApplet extends Activity implements PConstants, Runnable {
    * by Android as well.
    */
   public void surfaceWindowFocusChanged(boolean hasFocus) {
-    super.onWindowFocusChanged(hasFocus);
+    getActivity().onWindowFocusChanged(hasFocus);
     focused = hasFocus;
     if (focused) {
       focusGained();
@@ -946,14 +976,14 @@ public class PApplet extends Activity implements PConstants, Runnable {
   public boolean surfaceKeyDown(int code, KeyEvent event) {
     //  System.out.println("got onKeyDown for " + code + " " + event);
     checkKeyEvent(event);
-    return super.onKeyDown(code, event);
+    return getActivity().onKeyDown(code, event);
   }
 
 
   public boolean surfaceKeyUp(int code, KeyEvent event) {
     //  System.out.println("got onKeyUp for " + code + " " + event);
     checkKeyEvent(event);
-    return super.onKeyUp(code, event);
+    return getActivity().onKeyUp(code, event);
   }
 
 
@@ -985,9 +1015,9 @@ public class PApplet extends Activity implements PConstants, Runnable {
 
   public void orientation(int which) {
     if (which == PORTRAIT) {
-      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+      getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     } else if (which == LANDSCAPE) {
-      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+      getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
   }
 
@@ -1532,7 +1562,7 @@ public class PApplet extends Activity implements PConstants, Runnable {
           } catch (IllegalAccessException e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());            
-          } catch (InstantiationException e) {
+          } catch (java.lang.InstantiationException e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());
           }            
@@ -2530,11 +2560,11 @@ public class PApplet extends Activity implements PConstants, Runnable {
 
 
   void exit2() {
-    try {
-      System.exit(0);
-    } catch (SecurityException e) {
-      // don't care about applet security exceptions
-    }
+//    try {
+//      System.exit(0);
+//    } catch (SecurityException e) {
+//      // don't care about applet security exceptions
+//    }
   }
 
   /** 
@@ -3724,7 +3754,7 @@ public class PApplet extends Activity implements PConstants, Runnable {
     Typeface baseFont = null;
 
     if (lowerName.endsWith(".otf") || lowerName.endsWith(".ttf")) {
-      AssetManager assets = getBaseContext().getAssets();
+      AssetManager assets = getActivity().getBaseContext().getAssets();
       baseFont = Typeface.createFromAsset(assets, name);
     } else {
       baseFont = PFont.findTypeface(name);
@@ -4161,7 +4191,7 @@ public class PApplet extends Activity implements PConstants, Runnable {
      */
 
     // Try the assets folder
-    AssetManager assets = getAssets();
+    AssetManager assets = getActivity().getAssets();
     try {
       stream = assets.open(filename);
       if (stream != null) {
@@ -4199,7 +4229,7 @@ public class PApplet extends Activity implements PConstants, Runnable {
     }
 
     // Attempt to load the file more directly. Doesn't like paths.
-    Context context = getApplicationContext();
+    Context context = getActivity().getApplicationContext();
     try {
       // MODE_PRIVATE is default, should we use something else?
       stream = context.openFileInput(filename);
@@ -4581,7 +4611,7 @@ public class PApplet extends Activity implements PConstants, Runnable {
       if (new File(where).isAbsolute()) return where;
     } catch (Exception e) { }
 
-    Context context = getApplicationContext();
+    Context context = getActivity().getApplicationContext();
     return context.getFileStreamPath(where).getAbsolutePath();
   }
 
@@ -7039,19 +7069,19 @@ public class PApplet extends Activity implements PConstants, Runnable {
 
 
   private void tellPDE(final String message) {
-    Log.i(getComponentName().getPackageName(), "PROCESSING " + message);
+    Log.i(getActivity().getComponentName().getPackageName(), "PROCESSING " + message);
   }
 
 
   @Override
-  protected void onStart() {
+  public void onStart() {
     tellPDE("onStart");
     super.onStart();
   }
 
 
   @Override
-  protected void onStop() {
+  public void onStop() {
     tellPDE("onStop");
     super.onStop();
   }
